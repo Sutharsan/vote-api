@@ -27,6 +27,9 @@ async function average(ctx) {
   let avg;
   let count;
 
+  // TODO Validate id, value. Throw exception when invalid.
+
+  // TODO Try/catch with error response.
   [avg, count] = calculateAverage(id);
 
   // ctx.statusCode = 200;
@@ -43,10 +46,12 @@ async function vote(ctx) {
   const id = ctx.params.id;
   const value = ctx.params.value;
 
-  // TODO Validate id, value.
+  // TODO Validate id, value. Throw exception when invalid.
 
+  // TODO Try/catch with error response.
   addVote(id, value);
 
+  // TODO Return ::average() result.
   ctx.body = '';
 }
 
@@ -72,6 +77,7 @@ function intValue(value) {
 function addVote(id, value) {
   const iValue = intValue(value);
   if (!iValue) {
+    // TODO Throw exception with reason.
     return;
   }
 
