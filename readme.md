@@ -16,3 +16,22 @@ returns statistics.
 In cast of error, the respons contains:
   TODO HTML response status number
   error {string}: Description of the detected error. 
+
+
+##Commands
+
+To start node
+```
+npm start
+```
+
+To run ESLint
+```
+npm run eslint
+```
+To run ESLint and fix problems automatically
+```
+npm run eslint-fix
+```
+
+

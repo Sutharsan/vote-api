@@ -7,11 +7,14 @@ const logger = require('koa-logger');
 const router = require('koa-router')();
 const Koa = require('koa');
 
-const app = module.exports = new Koa();
+// eslint doesn't like multiline assignment. its better to seperate them.
+// https://eslint.org/docs/rules/no-multi-assign
+let app = module.exports;
+app = new Koa();
 
 // Vote storage
 // TODO Use a more persistent storage.
-let votes = [];
+const votes = [];
 
 // Middle ware.
 app.use(logger());
@@ -23,19 +26,18 @@ app.use(router.routes());
  * Callback: Return the average of votes.
  */
 async function average(ctx) {
-  const id = ctx.params.id;
-  let avg;
-  let count;
-
+  const { id } = ctx.params;
   // TODO Validate id, value. Throw exception when invalid.
 
   // TODO Try/catch with error response.
-  [avg, count] = calculateAverage(id);
+  // eslint doesn't like an array as definition. Its better to use a ambiguous var/let/const
+  const calcAvg = calculateAverage(id);
 
   // ctx.statusCode = 200;
   ctx.body = {
-    average: avg,
-    count,
+    // the 'average' and 'count' variables broke when removing the definitions. i changed them into objects
+    average: calcAvg.result,
+    count: calcAvg.count,
   };
 }
 
@@ -43,8 +45,8 @@ async function average(ctx) {
  * Callback: Store vote data.
  */
 async function vote(ctx) {
-  const id = ctx.params.id;
-  const value = ctx.params.value;
+  const { id } = ctx.params;
+  const { value } = ctx.params;
 
   // TODO Validate id, value. Throw exception when invalid.
 
@@ -112,7 +114,7 @@ function calculateAverage(id) {
   }
   result = Number((result).toFixed(1));
 
-  return [result, count];
+  return { result, count };
 }
 
 // listen
