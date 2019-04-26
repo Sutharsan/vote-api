@@ -31,11 +31,12 @@ const postVoteValidation = [
 async function postVote(req, res) {
   const { id } = req.params;
   const { value } = req.params;
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   try {
     validationResult(req).throw();
 
-    addVote(id, intValue(value));
+    addVote(new Vote(id, intValue(value), ip));
     res.json(calculateAverage(id));
   } catch (err) {
     // TODO Only param errors should result in 406 status.
@@ -43,6 +44,23 @@ async function postVote(req, res) {
       error: err.mapped(),
     });
   }
+}
+
+/**
+ * Object that contains one vote.
+ *
+ * @param id
+ *   ID of the voted item.
+ * @param value
+ *   Value of the vote.
+ * @param ip
+ *   Originators IP.
+ */
+function Vote(id, value, ip) {
+  this.id = id;
+  this.value = value;
+  this.ip = ip;
+  this.msTime = new Date().getMilliseconds();
 }
 
 /**
@@ -76,15 +94,10 @@ function intValue(value) {
 /**
  * Adds a vote to the storage.
  *
- * @param id
- * @param value
+ * @param {Vote} vote
  */
-function addVote(id, value) {
-  votes.push({
-    id,
-    value,
-    timestamp: new Date().getTime(),
-  });
+function addVote(vote) {
+  votes.push(vote);
 }
 
 /**
