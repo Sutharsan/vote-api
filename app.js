@@ -17,13 +17,8 @@ async function getAverage(req, res) {
   // TODO Add param validation
   const { id } = req.params;
 
-  const calculatedAvg = calculateAverage(id);
-
   res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify({
-    average: calculatedAvg.average,
-    count: calculatedAvg.count,
-  }));
+  res.send(JSON.stringify(calculateAverage(id)));
 }
 
 /**
@@ -36,8 +31,8 @@ async function postVote(req, res) {
 
   addVote(id, intValue(value));
 
-  // res.setHeader('Content-Type', 'application/json');
-  res.send('');
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(calculateAverage(id)));
 }
 
 /**
