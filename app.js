@@ -1,4 +1,5 @@
 const express = require('express');
+const { param, validationResult } = require('express-validator/check');
 
 const app = express();
 
@@ -6,33 +7,42 @@ const app = express();
 // TODO Use a more persistent storage.
 const votes = [];
 
-// Middle ware.
-app.get('/vote/:id', getAverage);
-app.post('/vote/:id/:value', postVote);
-
 /**
  * Callback: Return the average of votes.
  */
 async function getAverage(req, res) {
-  // TODO Add param validation
   const { id } = req.params;
 
-  res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify(calculateAverage(id)));
+  res.json(calculateAverage(id));
 }
+
+/**
+ * Validation chain for postVote.
+ *
+ * @type {ValidationChain[]}
+ */
+const postVoteValidation = [
+  param('value').isIn(['1', '2', '3', '4', '5']).withMessage('Parameter must be a value of 1 .. 5'),
+];
 
 /**
  * Callback: Store vote data.
  */
 async function postVote(req, res) {
-  // TODO Add param validation
   const { id } = req.params;
   const { value } = req.params;
 
-  addVote(id, intValue(value));
+  try {
+    validationResult(req).throw();
 
-  res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify(calculateAverage(id)));
+    addVote(id, intValue(value));
+    res.json(calculateAverage(id));
+  } catch (err) {
+    // TODO Only param errors should result in 406 status.
+    res.status(406).json({
+      error: err.mapped(),
+    });
+  }
 }
 
 /**
@@ -64,7 +74,7 @@ function intValue(value) {
 }
 
 /**
- * TODO
+ * Adds a vote to the storage.
  *
  * @param id
  * @param value
@@ -78,7 +88,7 @@ function addVote(id, value) {
 }
 
 /**
- * TODO
+ * Calculates the average vote.
  *
  * @param id
  * @returns {AverageVote}
@@ -103,6 +113,10 @@ function calculateAverage(id) {
 
   return new AverageVote(average, count);
 }
+
+// Middle ware.
+app.get('/vote/:id', getAverage);
+app.post('/vote/:id/:value', postVoteValidation, postVote);
 
 if (!module.parent) {
   app.listen(3000);
