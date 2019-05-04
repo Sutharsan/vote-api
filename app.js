@@ -8,6 +8,44 @@ const app = express();
 const votes = [];
 
 /**
+ * Class that contains vote data.
+ */
+class Vote {
+  /**
+   * @param id
+   *   ID of the voted item.
+   * @param value
+   *   Value of the vote.
+   * @param source
+   *   Identification of the vote source. E.g. IP address or user ID.
+   */
+  constructor(id, value, source) {
+    this.id = id;
+    this.value = value;
+    this.source = source;
+    this.msTime = new Date().getMilliseconds();
+  }
+}
+
+/**
+ * Class that contains the calculated average of a voted object.
+ *
+ * @see calculateAverage()
+ */
+class AverageVote {
+  /**
+   * @param average
+   *   The average vote.
+   * @param count
+   *   The total number of votes.
+   */
+  constructor(average, count) {
+    this.average = average;
+    this.count = count;
+  }
+}
+
+/**
  * Callback: Return the average of votes.
  */
 async function getAverage(req, res) {
@@ -47,42 +85,11 @@ async function postVote(req, res) {
 }
 
 /**
- * Object that contains one vote.
- *
- * @param id
- *   ID of the voted item.
- * @param value
- *   Value of the vote.
- * @param ip
- *   Originators IP.
- */
-function Vote(id, value, ip) {
-  this.id = id;
-  this.value = value;
-  this.ip = ip;
-  this.msTime = new Date().getMilliseconds();
-}
-
-/**
- * Object that contains the calculated average of a voted object.
- *
- * @param average
- *   The average vote.
- * @param count
- *   The total number of votes.
- *
- * @see calculateAverage()
- */
-function AverageVote(average, count) {
-  this.average = average;
-  this.count = count;
-}
-
-/**
  * Convert a value to integer.
  *
  * @param value
  *   The value to be converted.
+ *
  * @returns int
  *   The integer value. 0 if the value is zero or not a number.
  */
@@ -104,6 +111,8 @@ function addVote(vote) {
  * Calculates the average vote.
  *
  * @param id
+ *   ID of the voted item.
+ *
  * @returns {AverageVote}
  */
 function calculateAverage(id) {
