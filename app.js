@@ -6,6 +6,8 @@ const app = express();
 // Vote storage
 // TODO Use a more persistent storage.
 const votes = [];
+const voteAverage = [];
+const voteCount = [];
 
 /**
  * Class that contains vote data.
@@ -33,15 +35,19 @@ class Vote {
  * @see calculateAverage()
  */
 class AverageVote {
+  constructor() {
+    this.sum = 0;
+    this.average = 0;
+    this.count = 0;
+  }
+
   /**
-   * @param average
-   *   The average vote.
-   * @param count
-   *   The total number of votes.
+   * @param {Vote} vote
    */
-  constructor(average, count) {
-    this.average = average;
-    this.count = count;
+  addVote(vote) {
+    this.count += 1;
+    this.sum += vote.value;
+    this.average = Number((this.sum / this.count).toFixed(1));
   }
 }
 
@@ -51,7 +57,7 @@ class AverageVote {
 async function getAverage(req, res) {
   const { id } = req.params;
 
-  res.json(calculateAverage(id));
+  res.json(voteAverage[id]);
 }
 
 /**
@@ -75,7 +81,7 @@ async function postVote(req, res) {
     validationResult(req).throw();
 
     addVote(new Vote(id, intValue(value), ip));
-    res.json(calculateAverage(id));
+    res.json(voteAverage[id]);
   } catch (err) {
     // TODO Only param errors should result in 406 status.
     res.status(406).json({
@@ -105,35 +111,34 @@ function intValue(value) {
  */
 function addVote(vote) {
   votes.push(vote);
+  updateVoteAverage(vote);
+  updateVoteCount(vote);
 }
 
 /**
- * Calculates the average vote.
+ * Updates vote results with single vote.
  *
- * @param id
- *   ID of the voted item.
- *
- * @returns {AverageVote}
+ * @param {Vote} vote
  */
-function calculateAverage(id) {
-  let total = 0;
-  let count = 0;
-  let average = 0;
-
-  // TODO Use a more scalable solution.
-  votes.forEach((item) => {
-    if (item.id === id) {
-      total += item.value;
-      count += 1;
-    }
-  });
-
-  if (count) {
-    average = total / count;
+function updateVoteAverage(vote) {
+  // TODO Handle the array and ID inside of the a class.
+  if (voteAverage[vote.id] === undefined) {
+    voteAverage[vote.id] = new AverageVote();
   }
-  average = Number((average).toFixed(1));
+  voteAverage[vote.id].addVote(vote);
+}
 
-  return new AverageVote(average, count);
+/**
+ * Updates vote count.
+ *
+ * @param {Vote} vote
+ */
+function updateVoteCount(vote) {
+  // TODO Handle the array and ID inside of the a class.
+  if (voteCount[vote.id] === undefined) {
+    voteCount[vote.id] = [];
+  }
+  voteCount[vote.id][vote.value] += 1;
 }
 
 // Middle ware.
