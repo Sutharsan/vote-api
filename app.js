@@ -1,63 +1,33 @@
+/**
+ * @file
+ * The Voting application.
+ */
+
 const express = require('express');
 const { param, validationResult } = require('express-validator/check');
+const { addVote, getVoteAverage, getVoteCount } = require('./lib/votes');
 
 const app = express();
 
-// Vote storage
-// TODO Use a more persistent storage.
-const votes = [];
-const voteAverage = [];
-const voteCount = [];
-
 /**
- * Class that contains vote data.
- */
-class Vote {
-  /**
-   * @param id
-   *   ID of the voted item.
-   * @param value
-   *   Value of the vote.
-   * @param source
-   *   Identification of the vote source. E.g. IP address or user ID.
-   */
-  constructor(id, value, source) {
-    this.id = id;
-    this.value = value;
-    this.source = source;
-    this.msTime = new Date().getMilliseconds();
-  }
-}
-
-/**
- * Class that contains the calculated average of a voted object.
- *
- * @see calculateAverage()
- */
-class AverageVote {
-  constructor() {
-    this.sum = 0;
-    this.average = 0;
-    this.count = 0;
-  }
-
-  /**
-   * @param {Vote} vote
-   */
-  addVote(vote) {
-    this.count += 1;
-    this.sum += vote.value;
-    this.average = Number((this.sum / this.count).toFixed(1));
-  }
-}
-
-/**
- * Callback: Return the average of votes.
+ * Callback: Return the vote average.
  */
 async function getAverage(req, res) {
   const { id } = req.params;
 
-  res.json(voteAverage[id]);
+  res.json(getVoteAverage(id));
+}
+
+/**
+ * Callback: Return the vote statistics.
+ */
+async function getStatistics(req, res) {
+  const { id } = req.params;
+
+  res.json({
+    average: getVoteAverage(id),
+    count: getVoteCount(id),
+  });
 }
 
 /**
@@ -80,8 +50,9 @@ async function postVote(req, res) {
   try {
     validationResult(req).throw();
 
-    addVote(new Vote(id, intValue(value), ip));
-    res.json(voteAverage[id]);
+    addVote(id, value, ip);
+    res.json(getVoteAverage(id));
+    res.json(getVoteAverage(id));
   } catch (err) {
     // TODO Only param errors should result in 406 status.
     res.status(406).json({
@@ -90,59 +61,9 @@ async function postVote(req, res) {
   }
 }
 
-/**
- * Convert a value to integer.
- *
- * @param value
- *   The value to be converted.
- *
- * @returns int
- *   The integer value. 0 if the value is zero or not a number.
- */
-function intValue(value) {
-  const int = parseInt(value, 10);
-  return int || 0;
-}
-
-/**
- * Adds a vote to the storage.
- *
- * @param {Vote} vote
- */
-function addVote(vote) {
-  votes.push(vote);
-  updateVoteAverage(vote);
-  updateVoteCount(vote);
-}
-
-/**
- * Updates vote results with single vote.
- *
- * @param {Vote} vote
- */
-function updateVoteAverage(vote) {
-  // TODO Handle the array and ID inside of the a class.
-  if (voteAverage[vote.id] === undefined) {
-    voteAverage[vote.id] = new AverageVote();
-  }
-  voteAverage[vote.id].addVote(vote);
-}
-
-/**
- * Updates vote count.
- *
- * @param {Vote} vote
- */
-function updateVoteCount(vote) {
-  // TODO Handle the array and ID inside of the a class.
-  if (voteCount[vote.id] === undefined) {
-    voteCount[vote.id] = [];
-  }
-  voteCount[vote.id][vote.value] += 1;
-}
-
 // Middle ware.
 app.get('/vote/:id', getAverage);
+app.get('/vote/:id/stats', getStatistics);
 app.post('/vote/:id/:value', postVoteValidation, postVote);
 
 if (!module.parent) {
