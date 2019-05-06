@@ -55,8 +55,9 @@ async function postVote(req, res) {
     res.json(getVoteAverage(id));
   } catch (err) {
     // TODO Only param errors should result in 406 status.
+    const info = err.mapped();
     res.status(406).json({
-      error: err.mapped(),
+      error: info,
     });
   }
 }
