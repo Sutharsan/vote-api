@@ -48,17 +48,18 @@ async function postVote(req, res) {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   try {
-    validationResult(req).throw();
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(406).json({
+        error: errors.mapped(),
+      });
+    }
 
     addVote(id, value, ip);
     res.json(getVoteAverage(id));
     res.json(getVoteAverage(id));
   } catch (err) {
-    // TODO Only param errors should result in 406 status.
-    const info = err.mapped();
-    res.status(406).json({
-      error: info,
-    });
+    // TODO Additional error handling.
   }
 }
 
