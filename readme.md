@@ -13,5 +13,7 @@ POST /vote/{id}/{[1..5]}
 ### Nodemon
 To restart the node server during development use Nodemon: https://nodemon.io/
 Install: `npm install -g nodemon`
-Start: `nodemon app.js`
+Start: `nodemon dist/voting.js `
 
+### Babel
+Transpile with babel: `node_modules/.bin/babel src --out-dir dist --presets=@babel/preset-env`

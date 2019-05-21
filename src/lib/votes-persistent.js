@@ -1,9 +1,9 @@
 const storage = require('node-persist');
 const { Vote, AverageVote, VoteCount } = require('./votes');
 
-const voteHistoryStorage = storage.create({ dir: 'storage/history' });
-const voteAverageStorage = storage.create({ dir: 'storage/avarage' });
-const voteCountStorage = storage.create({ dir: 'storage/count' });
+const voteHistoryStorage = storage.create({ dir: '../storage/history' });
+const voteAverageStorage = storage.create({ dir: '../storage/avarage' });
+const voteCountStorage = storage.create({ dir: '../storage/count' });
 
 /**
  * Initialize the storage.
