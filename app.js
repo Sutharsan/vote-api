@@ -5,7 +5,8 @@
 
 const express = require('express');
 const { param, validationResult } = require('express-validator/check');
-const { addVote, getVoteAverage, getVoteCount } = require('./lib/votes');
+// const { initStorage, addVote, getVoteAverage, getVoteCount } = require('./lib/votes-memory');
+const { initStorage, addVote, getVoteAverage, getVoteCount } = require('./lib/votes-persistent');
 
 const app = express();
 
@@ -15,7 +16,7 @@ const app = express();
 async function getAverage(req, res) {
   const { id } = req.params;
 
-  res.json(getVoteAverage(id));
+  res.json(await getVoteAverage(id));
 }
 
 /**
@@ -25,8 +26,8 @@ async function getStatistics(req, res) {
   const { id } = req.params;
 
   res.json({
-    average: getVoteAverage(id),
-    count: getVoteCount(id),
+    average: await getVoteAverage(id),
+    count: await getVoteCount(id),
   });
 }
 
@@ -55,13 +56,14 @@ async function postVote(req, res) {
       });
     }
 
-    addVote(id, value, ip);
-    res.json(getVoteAverage(id));
-    res.json(getVoteAverage(id));
+    await addVote(id, value, ip);
+    res.json(await getVoteAverage(id));
   } catch (err) {
     // TODO Additional error handling.
   }
 }
+
+initStorage();
 
 // Middle ware.
 app.get('/vote/:id', getAverage);
