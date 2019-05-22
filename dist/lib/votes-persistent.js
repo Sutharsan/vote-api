@@ -26,14 +26,14 @@ var floodWindow = 3600;
 var floodThresholdById = 0;
 var floodThresholdBySource = 10;
 var voteHistoryStorage = storage.create({
-  dir: '../storage/history',
+  dir: 'storage/history',
   ttl: floodWindow
 });
 var voteAverageStorage = storage.create({
-  dir: '../storage/avarage'
+  dir: 'storage/avarage'
 });
 var voteCountStorage = storage.create({
-  dir: '../storage/count'
+  dir: 'storage/count'
 });
 /**
  * Initialize the storage.
@@ -112,24 +112,29 @@ function _addVote() {
 
           case 2:
             vote = new Vote(id, value, source);
+            _context2.next = 5;
+            return isFlooding(vote);
 
-            if (isFlooding(vote)) {
-              _context2.next = 10;
+          case 5:
+            _context2.t0 = _context2.sent;
+
+            if (!(_context2.t0 === false)) {
+              _context2.next = 13;
               break;
             }
 
-            _context2.next = 6;
+            _context2.next = 9;
             return pushHistory(vote);
 
-          case 6:
-            _context2.next = 8;
+          case 9:
+            _context2.next = 11;
             return updateAverage(vote);
 
-          case 8:
-            _context2.next = 10;
+          case 11:
+            _context2.next = 13;
             return updateCount(vote);
 
-          case 10:
+          case 13:
           case "end":
             return _context2.stop();
         }
@@ -438,8 +443,7 @@ function _isFlooding() {
 
           case 4:
             sameIdVotes = _context8.sent;
-            // console.log(sameIdVotes);
-            flooding = sameIdVotes > floodThresholdById;
+            flooding = sameIdVotes >= floodThresholdById;
 
           case 6:
             if (!(floodThresholdBySource > 0)) {
@@ -454,8 +458,7 @@ function _isFlooding() {
 
           case 9:
             sameSourceVotes = _context8.sent;
-            // console.log(sameSourceVotes);
-            flooding = flooding || sameSourceVotes > floodThresholdBySource;
+            flooding = flooding || sameSourceVotes >= floodThresholdBySource;
 
           case 11:
             return _context8.abrupt("return", flooding);
@@ -498,9 +501,6 @@ function _similarVotes() {
               var vote = new Vote(data.value);
               var match = true;
               Object.keys(conditions).forEach(function (key) {
-                console.log('bla2');
-                console.log(key);
-                console.log(conditions[key]);
                 match = match && conditions.key === vote.key;
               });
 

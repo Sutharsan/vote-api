@@ -14,8 +14,7 @@ var express = require('express');
 
 var _require = require('express-validator/check'),
     param = _require.param,
-    validationResult = _require.validationResult; // const { initStorage, addVote, getVoteAverage, getVoteCount } = require('./lib/votes-memory');
-
+    validationResult = _require.validationResult;
 
 var _require2 = require('./lib/votes-persistent'),
     initStorage = _require2.initStorage,
