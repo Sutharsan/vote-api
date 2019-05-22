@@ -5,7 +5,6 @@
 
 const express = require('express');
 const { param, validationResult } = require('express-validator/check');
-// const { initStorage, addVote, getVoteAverage, getVoteCount } = require('./lib/votes-memory');
 const { initStorage, addVote, getVoteAverage, getVoteCount } = require('./lib/votes-persistent');
 
 const voting = express();
