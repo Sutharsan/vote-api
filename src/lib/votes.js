@@ -98,6 +98,8 @@ class VoteCount {
   }
 }
 
-module.exports.Vote = Vote;
-module.exports.AverageVote = AverageVote;
-module.exports.VoteCount = VoteCount;
+export {
+  Vote,
+  AverageVote,
+  VoteCount,
+};

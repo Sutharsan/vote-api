@@ -83,7 +83,9 @@ function getVoteCount(id) {
   return voteCount[id] === undefined ? new VoteCount() : voteCount[id];
 }
 
-module.exports.initStorage = initStorage;
-module.exports.addVote = addVote;
-module.exports.getVoteAverage = getVoteAverage;
-module.exports.getVoteCount = getVoteCount;
+export {
+  initStorage,
+  addVote,
+  getVoteAverage,
+  getVoteCount,
+};

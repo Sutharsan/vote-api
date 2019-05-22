@@ -29,9 +29,11 @@ async function addVote(id, value, source) {
   }
 
   const vote = new Vote(id, value, source);
-  await pushHistory(vote);
-  await updateAverage(vote);
-  await updateCount(vote);
+  if (await isFlooding(vote) === false) {
+    await pushHistory(vote);
+    await updateAverage(vote);
+    await updateCount(vote);
+  }
 }
 
 /**
@@ -121,7 +123,9 @@ async function getVoteCount(id) {
   return count;
 }
 
-module.exports.initStorage = initStorage;
-module.exports.addVote = addVote;
-module.exports.getVoteAverage = getVoteAverage;
-module.exports.getVoteCount = getVoteCount;
+export {
+  initStorage,
+  addVote,
+  getVoteAverage,
+  getVoteCount,
+};
