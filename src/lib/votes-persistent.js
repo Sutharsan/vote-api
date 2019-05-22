@@ -2,7 +2,7 @@ const storage = require('node-persist');
 const { Vote, AverageVote, VoteCount } = require('./votes');
 
 const floodWindow = 3600;
-const floodThresholdById = 0;
+const floodThresholdById = 1;
 const floodThresholdBySource = 10;
 
 const voteHistoryStorage = storage.create({ dir: 'storage/history', ttl: floodWindow });
