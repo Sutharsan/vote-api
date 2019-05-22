@@ -170,10 +170,10 @@ async function isFlooding(vote) {
 async function similarVotes(conditions) {
   let count = 0;
 
-  await voteHistoryStorage.forEach(data => {
+  await voteHistoryStorage.forEach((data) => {
     const vote = new Vote(data.value);
     let match = true;
-    Object.keys(conditions).forEach(key => {
+    Object.keys(conditions).forEach((key) => {
       match = match && conditions.key === vote.key;
     });
     if (match) {
