@@ -9,11 +9,11 @@ POST /vote/{id}/{[1..5]}
   Returns: Average vote data
 
 ## Development
+Run: `npm run start`
 
 ### Nodemon
 To restart the node server during development use Nodemon: https://nodemon.io/
-Install: `npm install -g nodemon`
-Start: `nodemon dist/voting.js `
+Configuration in package.json (in nodemonConfig).
 
 ### Babel
-Transpile with babel: `node_modules/.bin/babel src --out-dir dist --presets=@babel/preset-env`
+Transpile with babel: `node_modules/.bin/babel src --out-dir dist`
