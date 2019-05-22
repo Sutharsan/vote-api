@@ -5,9 +5,9 @@ const floodWindow = 3600;
 const floodThresholdById = 0;
 const floodThresholdBySource = 10;
 
-const voteHistoryStorage = storage.create({ dir: '../storage/history', ttl: floodWindow });
-const voteAverageStorage = storage.create({ dir: '../storage/avarage' });
-const voteCountStorage = storage.create({ dir: '../storage/count' });
+const voteHistoryStorage = storage.create({ dir: 'storage/history', ttl: floodWindow });
+const voteAverageStorage = storage.create({ dir: 'storage/avarage' });
+const voteCountStorage = storage.create({ dir: 'storage/count' });
 
 /**
  * Initialize the storage.
