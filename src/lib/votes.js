@@ -1,9 +1,4 @@
 /**
- * @file
- * Contains votes.
- */
-
-/**
  * Class that contains vote data.
  */
 class Vote {
