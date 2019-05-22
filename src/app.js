@@ -7,7 +7,7 @@ const express = require('express');
 const { param, validationResult } = require('express-validator/check');
 const { initStorage, addVote, getVoteAverage, getVoteCount } = require('./lib/votes-persistent');
 
-const voting = express();
+const app = express();
 
 /**
  * Callback: Return the vote average.
@@ -65,10 +65,10 @@ async function postVote(req, res) {
 initStorage();
 
 // Middle ware.
-voting.get('/vote/:id', getAverage);
-voting.get('/vote/:id/stats', getStatistics);
-voting.post('/vote/:id/:value', postVoteValidation, postVote);
+app.get('/vote/:id', getAverage);
+app.get('/vote/:id/stats', getStatistics);
+app.post('/vote/:id/:value', postVoteValidation, postVote);
 
 if (!module.parent) {
-  voting.listen(3000);
+  app.listen(3000);
 }
