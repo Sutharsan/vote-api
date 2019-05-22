@@ -1,7 +1,11 @@
 const storage = require('node-persist');
 const { Vote, AverageVote, VoteCount } = require('./votes');
 
-const voteHistoryStorage = storage.create({ dir: '../storage/history' });
+const floodWindow = 3600;
+const floodThresholdById = 0;
+const floodThresholdBySource = 10;
+
+const voteHistoryStorage = storage.create({ dir: '../storage/history', ttl: floodWindow });
 const voteAverageStorage = storage.create({ dir: '../storage/avarage' });
 const voteCountStorage = storage.create({ dir: '../storage/count' });
 
@@ -123,9 +127,86 @@ async function getVoteCount(id) {
   return count;
 }
 
+/**
+ * Checks if a flood is going on.
+ *
+ * @param {Vote} vote
+ *
+ * @returns {Promise<boolean>}
+ *   True if this vote is considered to be part of a flood.
+ */
+async function isFlooding(vote) {
+  let flooding = false;
+
+  // Voted for same ID in flood window.
+  if (floodThresholdById > 0) {
+    const sameIdVotes = await similarVotes({
+      id: vote.id,
+      source: vote.source,
+    });
+    flooding = sameIdVotes >= floodThresholdById;
+  }
+
+  // Voted for any ID in flood window.
+  if (floodThresholdBySource > 0) {
+    const sameSourceVotes = await similarVotes({
+      source: vote.source,
+    });
+    flooding = flooding || sameSourceVotes >= floodThresholdBySource;
+  }
+
+  return flooding;
+}
+
+/**
+ * Count the number of historical votes that matches given condition(s).
+ *
+ * @param conditions
+ *   Conditions the votes must match. Key: vote property; Value: vote property value.
+ *
+ * @returns {Promise<number>}
+ *   The number of matching votes.
+ */
+async function similarVotes(conditions) {
+  let count = 0;
+
+  await voteHistoryStorage.forEach(data => {
+    const vote = new Vote(data.value);
+    let match = true;
+    Object.keys(conditions).forEach(key => {
+      match = match && conditions.key === vote.key;
+    });
+    if (match) {
+      count += 1;
+    }
+  });
+
+  return count;
+}
+
+/**
+ * Clears the vote storage.
+ *
+ * @param id
+ *   (Optional) vote ID for which to clear the storage.
+ *
+ * @returns {Promise<void>}
+ */
+async function clearStorage(id = 0) {
+  if (id === 0) {
+    await voteHistoryStorage.clear();
+    await voteAverageStorage.clear();
+    await voteCountStorage.clear();
+  } else {
+    voteAverageStorage.removeItem(id);
+    voteCountStorage.removeItem(id);
+  }
+}
+
 export {
   initStorage,
   addVote,
   getVoteAverage,
   getVoteCount,
+  clearStorage,
 };

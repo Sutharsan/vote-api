@@ -1,5 +1,13 @@
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.initStorage = initStorage;
+exports.addVote = addVote;
+exports.getVoteAverage = getVoteAverage;
+exports.getVoteCount = getVoteCount;
+
 /**
  * @file
  * Contains votes.
@@ -99,8 +107,3 @@ function getVoteAverage(id) {
 function getVoteCount(id) {
   return voteCount[id] === undefined ? new VoteCount() : voteCount[id];
 }
-
-module.exports.initStorage = initStorage;
-module.exports.addVote = addVote;
-module.exports.getVoteAverage = getVoteAverage;
-module.exports.getVoteCount = getVoteCount;

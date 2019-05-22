@@ -2,6 +2,11 @@
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.VoteCount = exports.AverageVote = exports.Vote = void 0;
+
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
@@ -53,6 +58,8 @@ function Vote(id, value, source) {
  */
 
 
+exports.Vote = Vote;
+
 var AverageVote =
 /*#__PURE__*/
 function () {
@@ -92,6 +99,8 @@ function () {
  */
 
 
+exports.AverageVote = AverageVote;
+
 var VoteCount =
 /*#__PURE__*/
 function () {
@@ -129,6 +138,4 @@ function () {
   return VoteCount;
 }();
 
-module.exports.Vote = Vote;
-module.exports.AverageVote = AverageVote;
-module.exports.VoteCount = VoteCount;
+exports.VoteCount = VoteCount;

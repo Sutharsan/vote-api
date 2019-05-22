@@ -2,6 +2,15 @@
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.initStorage = initStorage;
+exports.addVote = addVote;
+exports.getVoteAverage = getVoteAverage;
+exports.getVoteCount = getVoteCount;
+exports.clearStorage = clearStorage;
+
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
@@ -13,8 +22,12 @@ var _require = require('./votes'),
     AverageVote = _require.AverageVote,
     VoteCount = _require.VoteCount;
 
+var floodWindow = 3600;
+var floodThresholdById = 0;
+var floodThresholdBySource = 10;
 var voteHistoryStorage = storage.create({
-  dir: '../storage/history'
+  dir: '../storage/history',
+  ttl: floodWindow
 });
 var voteAverageStorage = storage.create({
   dir: '../storage/avarage'
@@ -99,18 +112,24 @@ function _addVote() {
 
           case 2:
             vote = new Vote(id, value, source);
-            _context2.next = 5;
+
+            if (isFlooding(vote)) {
+              _context2.next = 10;
+              break;
+            }
+
+            _context2.next = 6;
             return pushHistory(vote);
 
-          case 5:
-            _context2.next = 7;
+          case 6:
+            _context2.next = 8;
             return updateAverage(vote);
 
-          case 7:
-            _context2.next = 9;
+          case 8:
+            _context2.next = 10;
             return updateCount(vote);
 
-          case 9:
+          case 10:
           case "end":
             return _context2.stop();
         }
@@ -331,6 +350,15 @@ function _getVoteAverage() {
 function getVoteCount(_x8) {
   return _getVoteCount.apply(this, arguments);
 }
+/**
+ * Checks if a flood is going on.
+ *
+ * @param {Vote} vote
+ *
+ * @returns {Promise<boolean>}
+ *   True if this vote is considered to be part of a flood.
+ */
+
 
 function _getVoteCount() {
   _getVoteCount = (0, _asyncToGenerator2["default"])(
@@ -372,7 +400,174 @@ function _getVoteCount() {
   return _getVoteCount.apply(this, arguments);
 }
 
-module.exports.initStorage = initStorage;
-module.exports.addVote = addVote;
-module.exports.getVoteAverage = getVoteAverage;
-module.exports.getVoteCount = getVoteCount;
+function isFlooding(_x9) {
+  return _isFlooding.apply(this, arguments);
+}
+/**
+ * Count the number of historical votes that matches given condition(s).
+ *
+ * @param conditions
+ *   Conditions the votes must match. Key: vote property; Value: vote property value.
+ *
+ * @returns {Promise<number>}
+ *   The number of matching votes.
+ */
+
+
+function _isFlooding() {
+  _isFlooding = (0, _asyncToGenerator2["default"])(
+  /*#__PURE__*/
+  _regenerator["default"].mark(function _callee8(vote) {
+    var flooding, sameIdVotes, sameSourceVotes;
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
+      while (1) {
+        switch (_context8.prev = _context8.next) {
+          case 0:
+            flooding = false; // Voted for same ID in flood window.
+
+            if (!(floodThresholdById > 0)) {
+              _context8.next = 6;
+              break;
+            }
+
+            _context8.next = 4;
+            return similarVotes({
+              id: vote.id,
+              source: vote.source
+            });
+
+          case 4:
+            sameIdVotes = _context8.sent;
+            // console.log(sameIdVotes);
+            flooding = sameIdVotes > floodThresholdById;
+
+          case 6:
+            if (!(floodThresholdBySource > 0)) {
+              _context8.next = 11;
+              break;
+            }
+
+            _context8.next = 9;
+            return similarVotes({
+              source: vote.source
+            });
+
+          case 9:
+            sameSourceVotes = _context8.sent;
+            // console.log(sameSourceVotes);
+            flooding = flooding || sameSourceVotes > floodThresholdBySource;
+
+          case 11:
+            return _context8.abrupt("return", flooding);
+
+          case 12:
+          case "end":
+            return _context8.stop();
+        }
+      }
+    }, _callee8);
+  }));
+  return _isFlooding.apply(this, arguments);
+}
+
+function similarVotes(_x10) {
+  return _similarVotes.apply(this, arguments);
+}
+/**
+ * Clears the vote storage.
+ *
+ * @param id
+ *   (Optional) vote ID for which to clear the storage.
+ *
+ * @returns {Promise<void>}
+ */
+
+
+function _similarVotes() {
+  _similarVotes = (0, _asyncToGenerator2["default"])(
+  /*#__PURE__*/
+  _regenerator["default"].mark(function _callee9(conditions) {
+    var count;
+    return _regenerator["default"].wrap(function _callee9$(_context9) {
+      while (1) {
+        switch (_context9.prev = _context9.next) {
+          case 0:
+            count = 0;
+            _context9.next = 3;
+            return voteHistoryStorage.forEach(function (data) {
+              var vote = new Vote(data.value);
+              var match = true;
+              Object.keys(conditions).forEach(function (key) {
+                console.log('bla2');
+                console.log(key);
+                console.log(conditions[key]);
+                match = match && conditions.key === vote.key;
+              });
+
+              if (match) {
+                count += 1;
+              }
+            });
+
+          case 3:
+            return _context9.abrupt("return", count);
+
+          case 4:
+          case "end":
+            return _context9.stop();
+        }
+      }
+    }, _callee9);
+  }));
+  return _similarVotes.apply(this, arguments);
+}
+
+function clearStorage() {
+  return _clearStorage.apply(this, arguments);
+}
+
+function _clearStorage() {
+  _clearStorage = (0, _asyncToGenerator2["default"])(
+  /*#__PURE__*/
+  _regenerator["default"].mark(function _callee10() {
+    var id,
+        _args10 = arguments;
+    return _regenerator["default"].wrap(function _callee10$(_context10) {
+      while (1) {
+        switch (_context10.prev = _context10.next) {
+          case 0:
+            id = _args10.length > 0 && _args10[0] !== undefined ? _args10[0] : 0;
+
+            if (!(id === 0)) {
+              _context10.next = 10;
+              break;
+            }
+
+            _context10.next = 4;
+            return voteHistoryStorage.clear();
+
+          case 4:
+            _context10.next = 6;
+            return voteAverageStorage.clear();
+
+          case 6:
+            _context10.next = 8;
+            return voteCountStorage.clear();
+
+          case 8:
+            _context10.next = 12;
+            break;
+
+          case 10:
+            voteAverageStorage.removeItem(id);
+            voteCountStorage.removeItem(id);
+
+          case 12:
+          case "end":
+            return _context10.stop();
+        }
+      }
+    }, _callee10);
+  }));
+  return _clearStorage.apply(this, arguments);
+}
