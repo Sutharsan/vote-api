@@ -12,11 +12,6 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 /**
- * @file
- * Contains votes.
- */
-
-/**
  * Class that contains vote data.
  */
 var Vote =

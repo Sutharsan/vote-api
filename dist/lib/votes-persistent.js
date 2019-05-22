@@ -23,7 +23,7 @@ var _require = require('./votes'),
     VoteCount = _require.VoteCount;
 
 var floodWindow = 3600;
-var floodThresholdById = 0;
+var floodThresholdById = 1;
 var floodThresholdBySource = 10;
 var voteHistoryStorage = storage.create({
   dir: 'storage/history',
