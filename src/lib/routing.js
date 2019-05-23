@@ -1,5 +1,5 @@
 const { param, validationResult } = require('express-validator/check');
-const { addVote, getVoteAverage, getVoteCount } = require('./votes-persistent');
+const { addVote, getVoteAverage, getVoteCount } = require('./vote-persistent');
 
 /**
  * Callback: Return the vote average.

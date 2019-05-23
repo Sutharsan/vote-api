@@ -1,5 +1,5 @@
 const express = require('express');
-const { initStorage } = require('./lib/votes-persistent');
+const { initStorage } = require('./lib/vote-persistent');
 const { getAverage, getStatistics, postVoteValidation, postVote } = require('./lib/routing');
 
 const app = express();

@@ -1,8 +1,8 @@
 const storage = require('node-persist');
-const { Vote, AverageVote, VoteCount } = require('./votes');
+const { Vote, AverageVote, VoteCount } = require('./vote');
 
-const floodWindow = 3600;
-const floodThresholdById = 1;
+const floodWindow = 3600 * 1000; // 1 hour
+const floodThresholdById = 0;
 const floodThresholdBySource = 10;
 
 const voteHistoryStorage = storage.create({ dir: 'storage/history', ttl: floodWindow });
@@ -14,10 +14,10 @@ const voteCountStorage = storage.create({ dir: 'storage/count' });
  *
  * @returns {Promise<void>}
  */
-async function initStorage() {
-  await voteHistoryStorage.init();
-  await voteAverageStorage.init();
-  await voteCountStorage.init();
+function initStorage() {
+  voteHistoryStorage.init();
+  voteAverageStorage.init();
+  voteCountStorage.init();
 }
 
 /**
@@ -27,16 +27,16 @@ async function initStorage() {
  * @param value
  * @param source
  */
-async function addVote(id, value, source) {
+function addVote(id, value, source) {
   if (value < 1 || value > 5) {
     return;
   }
 
   const vote = new Vote(id, value, source);
-  if (await isFlooding(vote) === false) {
-    await pushHistory(vote);
-    await updateAverage(vote);
-    await updateCount(vote);
+  if (isFlooding(vote) === false) {
+    pushHistory(vote);
+    updateAverage(vote);
+    updateCount(vote);
   }
 }
 
@@ -44,8 +44,6 @@ async function addVote(id, value, source) {
  * Adds a vote to the history.
  *
  * @param {Vote} vote
- *
- * @returns {Promise<void>}
  */
 async function pushHistory(vote) {
   const key = `${vote.id}:${vote.timestamp}`;
@@ -75,17 +73,17 @@ async function updateAverage(vote) {
  *
  * @param {Vote} vote
  */
-async function updateCount(vote) {
+function updateCount(vote) {
   let count;
 
-  if (await voteAverageStorage.length() === 0) {
+  if (voteAverageStorage.length() === 0) {
     count = new VoteCount();
   } else {
-    count = new VoteCount(await voteCountStorage.getItem(vote.id));
+    count = new VoteCount(voteCountStorage.getItem(vote.id));
   }
 
   count.count(vote.value);
-  await voteCountStorage.setItem(vote.id, count);
+  voteCountStorage.setItem(vote.id, count);
 }
 
 /**
@@ -95,13 +93,13 @@ async function updateCount(vote) {
  *
  * @returns {object}
  */
-async function getVoteAverage(id) {
+function getVoteAverage(id) {
   let averageVote;
 
   if (voteAverageStorage.length === 0) {
     averageVote = new AverageVote();
   } else {
-    averageVote = new AverageVote(await voteAverageStorage.getItem(id));
+    averageVote = new AverageVote(voteAverageStorage.getItem(id));
   }
 
   const { average, count } = averageVote;
@@ -115,13 +113,13 @@ async function getVoteAverage(id) {
  *
  * @returns {VoteCount}
  */
-async function getVoteCount(id) {
+function getVoteCount(id) {
   let count;
 
   if (voteCountStorage.length === 0) {
     count = new VoteCount();
   } else {
-    count = new VoteCount(await voteCountStorage.getItem(id));
+    count = new VoteCount(voteCountStorage.getItem(id));
   }
 
   return count;
@@ -135,12 +133,12 @@ async function getVoteCount(id) {
  * @returns {Promise<boolean>}
  *   True if this vote is considered to be part of a flood.
  */
-async function isFlooding(vote) {
+function isFlooding(vote) {
   let flooding = false;
 
   // Voted for same ID in flood window.
   if (floodThresholdById > 0) {
-    const sameIdVotes = await similarVotes({
+    const sameIdVotes = similarVotes({
       id: vote.id,
       source: vote.source,
     });
@@ -149,7 +147,7 @@ async function isFlooding(vote) {
 
   // Voted for any ID in flood window.
   if (floodThresholdBySource > 0) {
-    const sameSourceVotes = await similarVotes({
+    const sameSourceVotes = similarVotes({
       source: vote.source,
     });
     flooding = flooding || sameSourceVotes >= floodThresholdBySource;
@@ -167,10 +165,10 @@ async function isFlooding(vote) {
  * @returns {Promise<number>}
  *   The number of matching votes.
  */
-async function similarVotes(conditions) {
+function similarVotes(conditions) {
   let count = 0;
 
-  await voteHistoryStorage.forEach((data) => {
+  voteHistoryStorage.forEach((data) => {
     const vote = new Vote(data.value);
     let match = true;
     Object.keys(conditions).forEach((key) => {
@@ -192,11 +190,11 @@ async function similarVotes(conditions) {
  *
  * @returns {Promise<void>}
  */
-async function clearStorage(id = 0) {
+function clearStorage(id = 0) {
   if (id === 0) {
-    await voteHistoryStorage.clear();
-    await voteAverageStorage.clear();
-    await voteCountStorage.clear();
+    voteHistoryStorage.clear();
+    voteAverageStorage.clear();
+    voteCountStorage.clear();
   } else {
     voteAverageStorage.removeItem(id);
     voteCountStorage.removeItem(id);
