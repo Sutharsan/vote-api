@@ -1,7 +1,7 @@
 /**
  * Class that contains vote data.
  */
-class Vote {
+export class Vote {
   /**
    * @param id
    *   ID of the voted item.
@@ -38,7 +38,7 @@ class Vote {
  *
  * @see updateAverage()
  */
-class AverageVote {
+export class AverageVote {
   constructor(data = undefined) {
     if (data === undefined) {
       this.sum = 0;
@@ -52,12 +52,27 @@ class AverageVote {
   }
 
   /**
+   * Add one vote to the average.
+   *
    * @param {Vote} vote
    */
-  addVote(vote) {
+  add(vote) {
     this.count += 1;
     this.sum += vote.value;
     this.average = Number((this.sum / this.count).toFixed(1));
+    return this;
+  }
+
+  /**
+   * Returns public properties.
+   *
+   * @returns {{average: number, count: number}}
+   */
+  public() {
+    return {
+      count: this.count,
+      average: this.average,
+    };
   }
 }
 
@@ -66,7 +81,7 @@ class AverageVote {
  *
  * @see updateCount()
  */
-class VoteCount {
+export class VoteCount {
   constructor(data = undefined) {
     if (data === undefined) {
       this.val_1 = 0;
@@ -84,17 +99,12 @@ class VoteCount {
   }
 
   /**
-   * Count a vote value.
+   * Increase the vote count.
    *
    * @param value
    */
-  count(value) {
+  increase(value) {
     this[`val_${value}`] += 1;
+    return this;
   }
 }
-
-export {
-  Vote,
-  AverageVote,
-  VoteCount,
-};

@@ -2,7 +2,7 @@ import storage from 'node-persist';
 import { Vote, AverageVote, VoteCount } from './vote';
 
 const floodWindow = 3600 * 1000; // 1 hour
-const floodThresholdById = 0;
+const floodThresholdById = 1;
 const floodThresholdBySource = 10;
 
 const voteHistoryStorage = storage.create({ dir: 'storage/history', ttl: floodWindow });
@@ -10,14 +10,26 @@ const voteAverageStorage = storage.create({ dir: 'storage/avarage' });
 const voteCountStorage = storage.create({ dir: 'storage/count' });
 
 /**
+ * Handles storage error.
+ */
+const storageError = (error) => {
+  // TODO Log the error internally.
+  // TODO How to respond externally?
+  console.log('Persistent storage error.', error.message);
+};
+
+/**
  * Initialize the storage.
  *
  * @returns {Promise<void>}
  */
-async function initStorage() {
-  await voteHistoryStorage.init();
-  await voteAverageStorage.init();
-  await voteCountStorage.init();
+export function initStorage() {
+  Promise.all([
+    voteHistoryStorage.init(),
+    voteAverageStorage.init(),
+    voteCountStorage.init(),
+  ])
+    .catch(storageError);
 }
 
 /**
@@ -26,84 +38,100 @@ async function initStorage() {
  * @param id
  * @param value
  * @param source
+ *
+ * @return {Promise<void>}
  */
-async function addVote(id, value, source) {
+export function addVote(id, value, source) {
   if (value < 1 || value > 5) {
-    return;
+    return Promise.reject('Invalid vote value. Allowed: 1 .. 5');
   }
 
   const vote = new Vote(id, value, source);
-  if (await isFlooding(vote) === false) {
-    await pushHistory(vote);
-    await updateAverage(vote);
-    await updateCount(vote);
+  if (isFlooding(vote) !== false) {
+    // Do nothing. Silently ignore flood attempts;
+    return Promise.resolve();
   }
+
+  return pushHistory(vote)
+    .then(() => updateAverage(vote))
+    .then(() => updateCount(vote))
+    .catch(storageError);
 }
 
 /**
  * Adds a vote to the history.
  *
  * @param {Vote} vote
+ *
+ * @return {Promise<void>}
  */
-async function pushHistory(vote) {
+function pushHistory(vote) {
   const key = `${vote.id}:${vote.timestamp}`;
-  await voteHistoryStorage.setItem(key, vote);
+  return voteHistoryStorage.setItem(key, vote)
+    .catch(storageError);
 }
 
 /**
  * Updates vote results with single vote.
  *
  * @param {Vote} vote
+ *
+ * @return {Promise<void>}
  */
-async function updateAverage(vote) {
-  let average;
-
-  if (await await voteAverageStorage.length() === 0) {
-    average = new AverageVote();
-  } else {
-    average = new AverageVote(await voteAverageStorage.getItem(vote.id));
-  }
-
-  average.addVote(vote);
-  await voteAverageStorage.setItem(vote.id, average);
+function updateAverage(vote) {
+  return voteAverageStorage.length()
+    .then((length) => {
+      if (length === 0) {
+        return new AverageVote();
+      }
+      return voteAverageStorage.getItem(vote.id)
+        .then(data => new AverageVote(data))
+        .catch(storageError);
+    })
+    .then(average => voteAverageStorage.setItem(vote.id, average.add(vote)))
+    .catch(storageError);
 }
 
 /**
  * Updates vote count.
  *
  * @param {Vote} vote
+ *
+ * @return {Promise<void>}
  */
-async function updateCount(vote) {
-  let count;
-
-  if (await voteAverageStorage.length() === 0) {
-    count = new VoteCount();
-  } else {
-    count = new VoteCount(await voteCountStorage.getItem(vote.id));
-  }
-
-  count.count(vote.value);
-  await voteCountStorage.setItem(vote.id, count);
+function updateCount(vote) {
+  return voteCountStorage.length()
+    .then((length) => {
+      if (length === 0) {
+        return new VoteCount();
+      }
+      return voteCountStorage.getItem(vote.id)
+        .then(data => new VoteCount(data))
+        .catch(storageError);
+    })
+    .then(count => voteCountStorage.setItem(vote.id, count.increase(vote.value)))
+    .catch(storageError);
 }
 
 /**
  * Returns the average vote data.
  *
  * @param id
+ *   Voted item ID.
  *
- * @returns {object}
+ * @returns {Promise<AverageVote>}
  */
-async function getVoteAverage(id) {
-  let averageVote;
-
-  if (await voteAverageStorage.length === 0) {
-    averageVote = new AverageVote();
-  } else {
-    averageVote = new AverageVote(await voteAverageStorage.getItem(id));
-  }
-
-  const { average, count } = averageVote;
-  return { average, count };
+export function getVoteAverage(id) {
+  return voteAverageStorage.length()
+    .then((length) => {
+      if (length === 0) {
+        return new AverageVote();
+      }
+      return voteAverageStorage.getItem(id)
+        .then(data => new AverageVote(data))
+        .catch(storageError);
+    })
+    .catch(storageError);
 }
 
 /**
@@ -111,18 +139,19 @@ async function getVoteAverage(id) {
  *
  * @param id
  *
- * @returns {VoteCount}
+ * @returns {Promise<VoteCount>}
  */
-async function getVoteCount(id) {
-  let count;
-
-  if (await voteCountStorage.length === 0) {
-    count = new VoteCount();
-  } else {
-    count = new VoteCount(await voteCountStorage.getItem(id));
-  }
-
-  return count;
+export function getVoteCount(id) {
+  return voteCountStorage.length()
+    .then((length) => {
+      if (length === 0) {
+        return new VoteCount();
+      }
+      return voteCountStorage.getItem(id)
+        .then(data => new VoteCount(data))
+        .catch(storageError);
+    })
+    .catch(storageError);
 }
 
 /**
@@ -130,26 +159,28 @@ async function getVoteCount(id) {
  *
  * @param {Vote} vote
  *
- * @returns {Promise<boolean>}
+ * @returns {boolean}
  *   True if this vote is considered to be part of a flood.
  */
-async function isFlooding(vote) {
+function isFlooding(vote) {
   let flooding = false;
 
   // Voted for same ID within flood window.
   if (floodThresholdById > 0) {
-    const sameIdVotes = await similarVotes({
+    const sameIdVotes = similarVotes({
       id: vote.id,
       source: vote.source,
     });
+    console.log('isFlooding 1', sameIdVotes);
     flooding = sameIdVotes >= floodThresholdById;
   }
 
   // Voted for any ID within flood window.
   if (floodThresholdBySource > 0) {
-    const sameSourceVotes = await similarVotes({
+    const sameSourceVotes = similarVotes({
       source: vote.source,
     });
+    console.log('isFlooding 2', sameSourceVotes);
     flooding = flooding || sameSourceVotes >= floodThresholdBySource;
   }
 
@@ -162,14 +193,14 @@ async function isFlooding(vote) {
  * @param conditions
  *   Conditions the votes must match. Key: vote property; Value: vote property value.
  *
- * @returns {Promise<number>}
+ * @returns {number}
  *   The number of matching votes.
  */
-async function similarVotes(conditions) {
+function similarVotes(conditions) {
   let count = 0;
 
-  await voteHistoryStorage.forEach((data) => {
-    const vote = new Vote(data.value);
+  voteHistoryStorage.forEach((data) => {
+    const vote = new Vote(data.value.id, data.value.value, data.value.source);
     let match = true;
     Object.keys(conditions).forEach((key) => {
       match = match && conditions.key === vote.key;
@@ -190,21 +221,19 @@ async function similarVotes(conditions) {
  *
  * @returns {Promise<void>}
  */
-async function clearStorage(id = 0) {
+export function clearStorage(id = 0) {
   if (id === 0) {
-    await voteHistoryStorage.clear();
-    await voteAverageStorage.clear();
-    await voteCountStorage.clear();
+    Promise.all([
+      voteHistoryStorage.clear(),
+      voteAverageStorage.clear(),
+      voteCountStorage.clear(),
+    ])
+      .catch(storageError);
   } else {
-    await voteAverageStorage.removeItem(id);
-    await voteCountStorage.removeItem(id);
+    Promise.all([
+      voteAverageStorage.clear(),
+      voteCountStorage.clear(),
+    ])
+      .catch(storageError);
   }
 }
-
-export {
-  initStorage,
-  addVote,
-  getVoteAverage,
-  getVoteCount,
-  clearStorage,
-};
