@@ -1,5 +1,5 @@
-const storage = require('node-persist');
-const { Vote, AverageVote, VoteCount } = require('./vote');
+import storage from 'node-persist';
+import { Vote, AverageVote, VoteCount } from './vote';
 
 const floodWindow = 3600 * 1000; // 1 hour
 const floodThresholdById = 0;
