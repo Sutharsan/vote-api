@@ -1,13 +1,12 @@
 import storage from 'node-persist';
+import config from '../../config';
 import { Vote, AverageVote, VoteCount } from './vote';
 
-const floodWindow = 3600 * 1000; // 1 hour
-const floodThresholdById = 1;
-const floodThresholdBySource = 10;
+const floodWindow = config.floodWindow * 1000;
 
-const voteHistoryStorage = storage.create({ dir: 'storage/history', ttl: floodWindow });
-const voteAverageStorage = storage.create({ dir: 'storage/avarage' });
-const voteCountStorage = storage.create({ dir: 'storage/count' });
+const voteHistoryStorage = storage.create({ dir: `${config.voteStorageDirectory}/history`, ttl: floodWindow });
+const voteAverageStorage = storage.create({ dir: `${config.voteStorageDirectory}/avarage` });
+const voteCountStorage = storage.create({ dir: `${config.voteStorageDirectory}/count` });
 
 /**
  * Handles storage error.
@@ -166,22 +165,20 @@ function isFlooding(vote) {
   let flooding = false;
 
   // Voted for same ID within flood window.
-  if (floodThresholdById > 0) {
+  if (config.floodThresholdById > 0) {
     const sameIdVotes = similarVotes({
       id: vote.id,
       source: vote.source,
     });
-    console.log('isFlooding 1', sameIdVotes);
-    flooding = sameIdVotes >= floodThresholdById;
+    flooding = sameIdVotes >= config.floodThresholdById;
   }
 
   // Voted for any ID within flood window.
-  if (floodThresholdBySource > 0) {
+  if (config.floodThresholdBySource > 0) {
     const sameSourceVotes = similarVotes({
       source: vote.source,
     });
-    console.log('isFlooding 2', sameSourceVotes);
-    flooding = flooding || sameSourceVotes >= floodThresholdBySource;
+    flooding = flooding || sameSourceVotes >= config.floodThresholdBySource;
   }
 
   return flooding;
