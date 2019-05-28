@@ -1,5 +1,5 @@
 import express from 'express';
-import config from '../config';
+import config from './config';
 import { initStorage } from './lib/vote-persistent';
 import { getAverage, getStatistics, postVoteValidation, postVote } from './lib/routing';
 

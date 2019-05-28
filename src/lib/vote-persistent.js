@@ -1,5 +1,5 @@
 import storage from 'node-persist';
-import config from '../../config';
+import config from '../config';
 import { Vote, AverageVote, VoteCount } from './vote';
 
 const floodWindow = config.floodWindow * 1000;
