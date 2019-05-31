@@ -39,16 +39,10 @@ export class Vote {
  * @see updateAverage()
  */
 export class AverageVote {
-  constructor(data = undefined) {
-    if (data === undefined) {
-      this.sum = 0;
-      this.average = 0;
-      this.count = 0;
-    } else {
-      this.sum = data.sum;
-      this.average = data.average;
-      this.count = data.count;
-    }
+  constructor(data = {}) {
+    this.sum = data.sum || 0;
+    this.average = data.average || 0;
+    this.count = data.count || 0;
   }
 
   /**
@@ -82,20 +76,12 @@ export class AverageVote {
  * @see updateCount()
  */
 export class VoteCount {
-  constructor(data = undefined) {
-    if (data === undefined) {
-      this.val_1 = 0;
-      this.val_2 = 0;
-      this.val_3 = 0;
-      this.val_4 = 0;
-      this.val_5 = 0;
-    } else {
-      this.val_1 = data.val_1;
-      this.val_2 = data.val_2;
-      this.val_3 = data.val_3;
-      this.val_4 = data.val_4;
-      this.val_5 = data.val_5;
-    }
+  constructor(data = {}) {
+    this.val_1 = data.val_1 || 0;
+    this.val_2 = data.val_2 || 0;
+    this.val_3 = data.val_3 || 0;
+    this.val_4 = data.val_4 || 0;
+    this.val_5 = data.val_5 || 0;
   }
 
   /**
