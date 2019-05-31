@@ -1,21 +1,24 @@
+import express from 'express';
 import { param, validationResult } from 'express-validator/check';
-import { addVote, getVoteAverage, getVoteCount } from './vote-persistent';
+import { addVote, getVoteAverage, getVoteCount } from '../lib/vote-persistent';
+
+export const router = express.Router();
 
 /**
- * Callback: Return the vote average.
+ * Defines the GET vote average endpoint.
  */
-export function getAverage(request, response) {
+router.get('/:id', (request, response) => {
   const { id } = request.params;
 
   getVoteAverage(id)
     .then(average => response.json(average.public()));
   // TODO catch.
-}
+});
 
 /**
- * Callback: Return the vote statistics.
+ * Defines the GET vote statistics route.
  */
-export function getStatistics(request, response) {
+router.get('/:id/stats', (request, response) => {
   const { id } = request.params;
   let average;
   let count;
@@ -33,21 +36,21 @@ export function getStatistics(request, response) {
       });
     });
   // TODO catch.
-}
+});
 
 /**
- * Validation chain for postVote.
+ * Validation chain for the vote value.
  *
  * @type {ValidationChain[]}
  */
-export const postVoteValidation = [
+const validateVoteValue = [
   param('value').isIn(['1', '2', '3', '4', '5']).withMessage('Parameter must be a value of 1 .. 5'),
 ];
 
 /**
- * Callback: Store vote data.
+ * Defines the the POST vote route.
  */
-export async function postVote(request, response) {
+router.post('/:id/:value', validateVoteValue, (request, response) => {
   const { id } = request.params;
   const { value } = request.params;
   const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
@@ -64,4 +67,6 @@ export async function postVote(request, response) {
     .then(() => getVoteAverage(id))
     .then(average => response.json(average.public()));
   // TODO catch.
-}
+});
+
+export default router;
