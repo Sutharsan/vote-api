@@ -2,23 +2,44 @@ import express from 'express';
 import { param, validationResult } from 'express-validator/check';
 import { addVote, getVoteAverage, getVoteCount } from '../lib/vote-persistent';
 
-export const router = express.Router();
+export const routerVote = express.Router();
 
 /**
- * Defines the GET vote average endpoint.
+ * Error middleware: Handles error and send response with (some) details.
+ *
+ * @param error
+ * @param request
+ * @param response
+ * @param next
  */
-router.get('/:id', (request, response) => {
+export async function handleError(error, request, response, next) {
+  if (response.headersSent) {
+    // TODO Log error?
+    process.exit();
+  }
+
+  await response
+    .status(500)
+    .json({
+      error: error.message,
+    });
+}
+
+/**
+ * Route middleware: Defines the GET vote average endpoint.
+ */
+routerVote.get('/:id', (request, response, next) => {
   const { id } = request.params;
 
   getVoteAverage(id)
-    .then(average => response.json(average.public()));
-  // TODO catch.
+    .then(average => response.json(average.public()))
+    .catch(next);
 });
 
 /**
- * Defines the GET vote statistics route.
+ * Route middleware: Defines the GET vote statistics route.
  */
-router.get('/:id/stats', (request, response) => {
+routerVote.get('/:id/stats', (request, response, next) => {
   const { id } = request.params;
   let average;
   let count;
@@ -34,8 +55,8 @@ router.get('/:id/stats', (request, response) => {
         average,
         count,
       });
-    });
-  // TODO catch.
+    })
+    .catch(next);
 });
 
 /**
@@ -48,9 +69,9 @@ const validateVoteValue = [
 ];
 
 /**
- * Defines the the POST vote route.
+ * Route middleware: Defines the the POST vote route.
  */
-router.post('/:id/:value', validateVoteValue, (request, response) => {
+routerVote.post('/:id/:value', validateVoteValue, (request, response, next) => {
   const { id } = request.params;
   const { value } = request.params;
   const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
@@ -65,8 +86,6 @@ router.post('/:id/:value', validateVoteValue, (request, response) => {
 
   addVote(id, value, ip)
     .then(() => getVoteAverage(id))
-    .then(average => response.json(average.public()));
-  // TODO catch.
+    .then(average => response.json(average.public()))
+    .catch(next);
 });
-
-export default router;

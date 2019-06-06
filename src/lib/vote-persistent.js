@@ -11,10 +11,9 @@ const voteCountStorage = storage.create({ dir: `${config.voteStorageDirectory}/c
 /**
  * Handles storage error.
  */
-const storageError = (error) => {
-  // TODO Log the error internally.
-  // TODO How to respond externally?
-  console.log('Persistent storage error.', error.message);
+const handleStorageError = (error) => {
+  // TODO Log the error internally `Persistent storage error: ${error.message}`
+  throw new Error('Persistent storage error');
 };
 
 /**
@@ -28,7 +27,7 @@ export function initStorage() {
     voteAverageStorage.init(),
     voteCountStorage.init(),
   ])
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -54,7 +53,7 @@ export function addVote(id, value, source) {
   return pushHistory(vote)
     .then(() => updateAverage(vote))
     .then(() => updateCount(vote))
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -67,7 +66,7 @@ export function addVote(id, value, source) {
 function pushHistory(vote) {
   const key = `${vote.id}:${vote.timestamp}`;
   return voteHistoryStorage.setItem(key, vote)
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -85,10 +84,10 @@ function updateAverage(vote) {
       }
       return voteAverageStorage.getItem(vote.id)
         .then(data => new AverageVote(data))
-        .catch(storageError);
+        .catch(handleStorageError);
     })
     .then(average => voteAverageStorage.setItem(vote.id, average.add(vote)))
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -106,10 +105,10 @@ function updateCount(vote) {
       }
       return voteCountStorage.getItem(vote.id)
         .then(data => new VoteCount(data))
-        .catch(storageError);
+        .catch(handleStorageError);
     })
     .then(count => voteCountStorage.setItem(vote.id, count.increase(vote.value)))
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -128,9 +127,9 @@ export function getVoteAverage(id) {
       }
       return voteAverageStorage.getItem(id)
         .then(data => new AverageVote(data))
-        .catch(storageError);
+        .catch(handleStorageError);
     })
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -148,9 +147,9 @@ export function getVoteCount(id) {
       }
       return voteCountStorage.getItem(id)
         .then(data => new VoteCount(data))
-        .catch(storageError);
+        .catch(handleStorageError);
     })
-    .catch(storageError);
+    .catch(handleStorageError);
 }
 
 /**
@@ -225,12 +224,12 @@ export function clearStorage(id = 0) {
       voteAverageStorage.clear(),
       voteCountStorage.clear(),
     ])
-      .catch(storageError);
+      .catch(handleStorageError);
   } else {
     Promise.all([
       voteAverageStorage.clear(),
       voteCountStorage.clear(),
     ])
-      .catch(storageError);
+      .catch(handleStorageError);
   }
 }
