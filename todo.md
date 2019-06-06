@@ -1,6 +1,6 @@
 more reviews
-(Better) error handling and reporting.
 
 Functionality
+- Response caching
 - Override/modify my vote.
-- Return my vote with GET /vote/{id} 
+- Return my vote with GET /vote/{id}
