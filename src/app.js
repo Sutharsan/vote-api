@@ -1,6 +1,6 @@
 import express from 'express';
 import config from './config';
-import { initStorage } from './lib/vote-persistent';
+import { initStorage } from './vote-storage';
 import { routerVote, handleError } from './router/vote';
 
 const app = express();

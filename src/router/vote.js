@@ -1,16 +1,11 @@
 import express from 'express';
 import { param, validationResult } from 'express-validator/check';
-import { addVote, getVoteAverage, getVoteCount } from '../lib/vote-persistent';
+import { addVote, getVoteAverage, getVoteCount } from '../vote-storage';
 
 export const routerVote = express.Router();
 
 /**
  * Error middleware: Handles error and send response with (some) details.
- *
- * @param error
- * @param request
- * @param response
- * @param next
  */
 export async function handleError(error, request, response, next) {
   if (response.headersSent) {
