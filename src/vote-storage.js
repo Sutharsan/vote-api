@@ -1,6 +1,6 @@
 import storage from 'node-persist';
 import config from './config';
-import { VoteClasses, AverageVote, VoteCount } from './vote-classes';
+import { Vote, AverageVote, VoteCount } from './vote-classes';
 
 const floodWindow = config.floodWindow * 1000;
 
@@ -44,7 +44,7 @@ export function addVote(id, value, source) {
     return Promise.reject('Invalid vote value. Allowed: 1 .. 5');
   }
 
-  const vote = new VoteClasses(id, value, source);
+  const vote = new Vote(id, value, source);
   if (isFlooding(vote) !== false) {
     // Do nothing. Silently ignore flood attempts;
     return Promise.resolve();
@@ -59,7 +59,7 @@ export function addVote(id, value, source) {
 /**
  * Adds a vote to the history.
  *
- * @param {VoteClasses} vote
+ * @param {Vote} vote
  *
  * @return {Promise<void>}
  */
@@ -72,7 +72,7 @@ function pushHistory(vote) {
 /**
  * Updates vote results with single vote.
  *
- * @param {VoteClasses} vote
+ * @param {Vote} vote
  *
  * @return {Promise<void>}
  */
@@ -93,7 +93,7 @@ function updateAverage(vote) {
 /**
  * Updates vote count.
  *
- * @param {VoteClasses} vote
+ * @param {Vote} vote
  *
  * @return {Promise<void>}
  */
@@ -155,7 +155,7 @@ export function getVoteCount(id) {
 /**
  * Checks if a flood is going on.
  *
- * @param {VoteClasses} vote
+ * @param {Vote} vote
  *
  * @returns {boolean}
  *   True if this vote is considered to be part of a flood.
@@ -196,7 +196,7 @@ function similarVotes(conditions) {
   let count = 0;
 
   voteHistoryStorage.forEach((data) => {
-    const vote = new VoteClasses(data.value.id, data.value.value, data.value.source);
+    const vote = new Vote(data.value.id, data.value.value, data.value.source);
     let match = true;
     Object.keys(conditions).forEach((key) => {
       match = match && conditions.key === vote.key;
