@@ -32,7 +32,7 @@
     "delay": "30"
   },
   "scripts": {
-    "start": "nodemon --exec 'babel-node src/app.js'",
+    "start": "nodemon --require @babel/register src/app.js",
     "build": "babel src --out-dir dist",
     "serve": "node dist/app.js",
     "test": "mocha --require @babel/register test/**/*.js",
