@@ -14,7 +14,9 @@ process.on('uncaughtException', (err) => {
 });
 
 // Initialize persistent storage.
-initStorage();
+(async () => {
+  await initStorage('test-storage');
+})();
 
 // Middleware stack for routing and error reporting.
 // TODO Add caching middleware.

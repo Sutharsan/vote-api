@@ -2,18 +2,16 @@ import storage from 'node-persist';
 import config from './config';
 import { Vote, AverageVote, VoteCount } from './vote-classes';
 
-const floodWindow = config.floodWindow * 1000;
-
-const voteHistoryStorage = storage.create({ dir: `${config.voteStorageDirectory}/history`, ttl: floodWindow });
-const voteAverageStorage = storage.create({ dir: `${config.voteStorageDirectory}/avarage` });
-const voteCountStorage = storage.create({ dir: `${config.voteStorageDirectory}/count` });
+let voteHistoryStorage;
+let voteAverageStorage;
+let voteCountStorage;
 
 /**
  * Handles storage error.
  */
 const handleStorageError = (error) => {
-  // TODO Log the error internally `Persistent storage error: ${error.message}`
-  throw new Error('Persistent storage error');
+  console.log(`Persistent storage error: ${error}`);
+  process.exit(1);
 };
 
 /**
@@ -21,14 +19,24 @@ const handleStorageError = (error) => {
  *
  * @returns {Promise<void>}
  */
-export function initStorage() {
-  Promise.all([
-    voteHistoryStorage.init(),
-    voteAverageStorage.init(),
-    voteCountStorage.init(),
-  ])
-    .catch(handleStorageError);
+async function initStorage(dir = config.voteStorageDirectory) {
+  const floodWindow = config.floodWindow * 1000;
+  console.log(dir);
+  voteHistoryStorage = storage.create({ dir: `${dir}/history`, ttl: floodWindow });
+  voteAverageStorage = storage.create({ dir: `${dir}/avarage` });
+  voteCountStorage = storage.create({ dir: `${dir}/count` });
+
+  try {
+    await voteHistoryStorage.init();
+    await voteAverageStorage.init();
+    await voteCountStorage.init();
+  }
+  catch (error) {
+    throw new Error(handleStorageError(error));
+  }
 }
+
+export { initStorage };
 
 /**
  * Adds a single vote to the history.
@@ -53,7 +61,7 @@ export function addVote(id, value, source) {
   return pushHistory(vote)
     .then(() => updateAverage(vote))
     .then(() => updateCount(vote))
-    .catch(handleStorageError);
+    .catch(error => handleStorageError(error));
 }
 
 /**
@@ -66,7 +74,7 @@ export function addVote(id, value, source) {
 function pushHistory(vote) {
   const key = `${vote.id}:${vote.timestamp}`;
   return voteHistoryStorage.setItem(key, vote)
-    .catch(handleStorageError);
+    .catch(error => handleStorageError(error));
 }
 
 /**
@@ -84,10 +92,10 @@ function updateAverage(vote) {
       }
       return voteAverageStorage.getItem(vote.id)
         .then(data => new AverageVote(data))
-        .catch(handleStorageError);
+        .catch(error => handleStorageError(error));
     })
     .then(average => voteAverageStorage.setItem(vote.id, average.add(vote)))
-    .catch(handleStorageError);
+    .catch(error => handleStorageError(error));
 }
 
 /**
@@ -105,10 +113,10 @@ function updateCount(vote) {
       }
       return voteCountStorage.getItem(vote.id)
         .then(data => new VoteCount(data))
-        .catch(handleStorageError);
+        .catch(error => handleStorageError(error));
     })
     .then(count => voteCountStorage.setItem(vote.id, count.increase(vote.value)))
-    .catch(handleStorageError);
+    .catch(error => handleStorageError(error));
 }
 
 /**
@@ -127,9 +135,9 @@ export function getVoteAverage(id) {
       }
       return voteAverageStorage.getItem(id)
         .then(data => new AverageVote(data))
-        .catch(handleStorageError);
+        .catch(error => handleStorageError(error));
     })
-    .catch(handleStorageError);
+    .catch(error => handleStorageError(error));
 }
 
 /**
@@ -147,9 +155,9 @@ export function getVoteCount(id) {
       }
       return voteCountStorage.getItem(id)
         .then(data => new VoteCount(data))
-        .catch(handleStorageError);
+        .catch(error => handleStorageError(error));
     })
-    .catch(handleStorageError);
+    .catch(error => handleStorageError(error));
 }
 
 /**
@@ -224,12 +232,12 @@ export function clearStorage(id = 0) {
       voteAverageStorage.clear(),
       voteCountStorage.clear(),
     ])
-      .catch(handleStorageError);
+      .catch(error => handleStorageError(error));
   } else {
     Promise.all([
       voteAverageStorage.clear(),
       voteCountStorage.clear(),
     ])
-      .catch(handleStorageError);
+      .catch(error => handleStorageError(error));
   }
 }
