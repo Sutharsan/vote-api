@@ -52,7 +52,7 @@ export function addVote(id, value, source) {
     return Promise.reject('Invalid vote value. Allowed: 1 .. 5');
   }
 
-  const vote = new Vote(id, value, source);
+  const vote = new Vote(toString(id), value, source);
   if (isFlooding(vote) !== false) {
     // Do nothing. Silently ignore flood attempts;
     return Promise.resolve();
@@ -90,7 +90,7 @@ function updateAverage(vote) {
       if (length === 0) {
         return new AverageVote();
       }
-      return voteAverageStorage.getItem(vote.id)
+      return voteAverageStorage.getItem(toString(vote.id))
         .then(data => new AverageVote(data))
         .catch(error => handleStorageError(error));
     })
@@ -111,7 +111,7 @@ function updateCount(vote) {
       if (length === 0) {
         return new VoteCount();
       }
-      return voteCountStorage.getItem(vote.id)
+      return voteCountStorage.getItem(toString(vote.id))
         .then(data => new VoteCount(data))
         .catch(error => handleStorageError(error));
     })
@@ -133,7 +133,7 @@ export function getVoteAverage(id) {
       if (length === 0) {
         return new AverageVote();
       }
-      return voteAverageStorage.getItem(id)
+      return voteAverageStorage.getItem(toString(id))
         .then(data => new AverageVote(data))
         .catch(error => handleStorageError(error));
     })
@@ -153,7 +153,7 @@ export function getVoteCount(id) {
       if (length === 0) {
         return new VoteCount();
       }
-      return voteCountStorage.getItem(id)
+      return voteCountStorage.getItem(toString(id))
         .then(data => new VoteCount(data))
         .catch(error => handleStorageError(error));
     })
