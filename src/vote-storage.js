@@ -21,9 +21,9 @@ const handleStorageError = (error) => {
  */
 async function initStorage(dir = config.voteStorageDirectory) {
   const floodWindow = config.floodWindow * 1000;
-  console.log(dir);
+
   voteHistoryStorage = storage.create({ dir: `${dir}/history`, ttl: floodWindow });
-  voteAverageStorage = storage.create({ dir: `${dir}/avarage` });
+  voteAverageStorage = storage.create({ dir: `${dir}/average` });
   voteCountStorage = storage.create({ dir: `${dir}/count` });
 
   try {
