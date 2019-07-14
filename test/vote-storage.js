@@ -3,10 +3,11 @@ import { expect } from 'chai';
 import { initStorage, addVote, getVoteAverage, getVoteCount } from '../src/vote-storage';
 
 describe('The Vote class', () => {
+  const storageDirectory = 'test-storage';
 
   beforeEach(() => {
     mock({
-      'test-storage': {
+      storageDirectory: {
         'history': {},
         'count': {},
         'average': {},
@@ -14,7 +15,7 @@ describe('The Vote class', () => {
     });
 
     (async () => {
-      await initStorage('test-storage');
+      await initStorage(storageDirectory);
     })();
   });
 
@@ -23,8 +24,8 @@ describe('The Vote class', () => {
   });
 
   it('single addVote call', () => {
-    let id = '1';
-    let source = 'source';
+    const id = '1';
+    const source = 'source';
     addVote(id, 1, source)
       .then(() => getVoteCount(id))
       .then(voteCount => {
@@ -43,8 +44,8 @@ describe('The Vote class', () => {
   });
 
   it('multiple addVote calls', () => {
-    let id = '1';
-    let source = 'source';
+    const id = '1';
+    const source = 'source';
     addVote(id, 1, source)
       .then(() => addVote(id, 3, source))
       .then(() => addVote(id, 3, source))
