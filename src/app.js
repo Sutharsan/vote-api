@@ -15,7 +15,7 @@ process.on('uncaughtException', (err) => {
 
 // Initialize persistent storage.
 (async () => {
-  await initStorage('test-storage');
+  await initStorage(config.voteStorageDirectory);
 })();
 
 // Middleware stack for routing and error reporting.
