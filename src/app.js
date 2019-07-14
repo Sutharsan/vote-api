@@ -27,3 +27,5 @@ app.use(handleError);
 if (!module.parent) {
   app.listen(config.appSeverPort);
 }
+
+module.exports = app;
