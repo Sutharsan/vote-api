@@ -12,7 +12,7 @@
     "node-persist": "^3.0.4"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
+    "@babel/cli": "^7.20.7",
     "@babel/core": "^7.4.5",
     "@babel/node": "^7.4.5",
     "@babel/plugin-transform-runtime": "^7.4.4",
